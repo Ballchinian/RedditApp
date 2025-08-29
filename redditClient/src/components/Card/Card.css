@@ -1,0 +1,22 @@
+.card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 1px 1px 6px rgba(0,0,0,0.1);
+}
+.card a {
+  font-weight: bold;
+  color: #0079d3;
+  text-decoration: none;
+}
+.card a:hover {
+  text-decoration: underline;
+}
+.card p {
+  margin: 5px 0 0 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+
