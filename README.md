@@ -11,7 +11,7 @@ Some of the main features include:
 - CORS handling (Allow frontend and backend to communicate locally)
 - Image Proxy (Fallback to stable i.redd.it images, full preview, or thumbnail if necessary)
 
-When building this I wanted to bring everything I know about frontend and backend integration into one place:
+When building this I wanted to bring everything I know about API integration with a nice lite feel to the visuals:
 
 - REST API design and endpoints
 - Python/Flask for backend logic and requests
