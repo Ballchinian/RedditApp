@@ -2,10 +2,9 @@ import os
 import requests
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-from dotenv import load_dotenv
 from urllib.parse import unquote
-from reddit_api import reddit_get
-
+from reddit_api import fetch_hot, fetch_popular_subreddits, fetch_suggestions
+from urllib.parse import urlsplit, urlunsplit, urlencode, parse_qsl
 
 
 #Initialize Flask app
@@ -15,19 +14,14 @@ CORS(app)
 
 #Set Reddit User-Agent from environment or use default
 
-USER_AGENT = os.getenv("USER_AGENT", "myredditapp/0.1 by yourusername")
 
 #----Get Posts from subreddit (with pagination)----
 @app.route("/api/posts/<subreddit>/", defaults={"after": None})
 @app.route("/api/posts/<subreddit>/<after>")
 def get_posts(subreddit, after=None):
     try:
-        #Build Reddit API URL
-        params = {"limit": 10}
-        if after:
-            params["after"] = after  #Use after token for pagination
 
-        data = reddit_get(f"/r/{subreddit}/hot", params=params)
+        data = fetch_hot(subreddit, limit=10, after=after)
 
         posts = []
         for child in data["data"]["children"]:
@@ -86,7 +80,6 @@ def image_proxy():
         return jsonify({"error": "No URL provided"}), 400
 
     #Properly decode URL and rebuild query
-    from urllib.parse import urlsplit, urlunsplit, urlencode, parse_qsl
     split_url = urlsplit(img_url)
     query = dict(parse_qsl(split_url.query))
     img_url = urlunsplit((split_url.scheme, split_url.netloc, split_url.path, urlencode(query), split_url.fragment))
@@ -117,7 +110,7 @@ def image_proxy():
 def get_popular_subreddits():
     try:
 
-        data = data = reddit_get("/subreddits/popular", params={"limit": 15})
+        data = fetch_popular_subreddits(limit=15)
 
         subreddits = []
         for child in data["data"]["children"]:
@@ -135,9 +128,9 @@ def get_popular_subreddits():
 @app.route("/api/suggestions/<query>", strict_slashes=False)
 def get_suggestions(query):
     try:
-        data = reddit_get(f"/api/subreddit_autocomplete_v2.json", params={"query": query})
+        data = fetch_suggestions(query, limit=10)
         return jsonify(data)
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
