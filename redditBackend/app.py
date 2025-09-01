@@ -137,8 +137,11 @@ def get_popular_subreddits():
             })
 
         return jsonify(subreddits)
+    except requests.exceptions.HTTPError as e:
+        print("Reddit HTTP error:", res.text)  # Trying to get logs
+        return jsonify({"error": str(e), "body": res.text}), 500
     except Exception as e:
-        #Return error if request fails
+        print("General error:", e)  # Trying to get logs
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/suggestions/<query>", strict_slashes=False)
