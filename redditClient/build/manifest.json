@@ -1,9 +1,0 @@
-{
-    "short_name": "Reddit Client",
-    "name": "Reddit Client",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#131516"
-    
-  }
-  

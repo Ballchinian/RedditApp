@@ -29,6 +29,10 @@ def get_posts(subreddit, after=None):
 
         headers = {"User-Agent": USER_AGENT}
         res = requests.get(url, params=params, headers=headers)
+
+        # Raise for non-200 responses to catch errors
+        res.raise_for_status()
+
         data = res.json()
 
         posts = []
@@ -73,7 +77,10 @@ def get_posts(subreddit, after=None):
 
     except Exception as e:
         #Return error if any exception occurs
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": str(e),
+            "response": getattr(e.response, "text", "")[:500]
+        }), 500
 
 
 #---New endpoint to proxy Reddit images----
