@@ -4,9 +4,9 @@ from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 from urllib.parse import unquote
+from reddit_api import reddit_get
 
-#Load environment variables from .env file
-load_dotenv()
+
 
 #Initialize Flask app
 app = Flask(__name__)
@@ -14,6 +14,7 @@ app = Flask(__name__)
 CORS(app)
 
 #Set Reddit User-Agent from environment or use default
+
 USER_AGENT = os.getenv("USER_AGENT", "myredditapp/0.1 by yourusername")
 
 #----Get Posts from subreddit (with pagination)----
@@ -22,18 +23,11 @@ USER_AGENT = os.getenv("USER_AGENT", "myredditapp/0.1 by yourusername")
 def get_posts(subreddit, after=None):
     try:
         #Build Reddit API URL
-        url = f"https://www.reddit.com/r/{subreddit}/hot.json"
         params = {"limit": 10}
         if after:
             params["after"] = after  #Use after token for pagination
 
-        headers = {"User-Agent": USER_AGENT}
-        res = requests.get(url, params=params, headers=headers)
-
-        # Raise for non-200 responses to catch errors
-        res.raise_for_status()
-
-        data = res.json()
+        data = reddit_get(f"/r/{subreddit}/hot", params=params)
 
         posts = []
         for child in data["data"]["children"]:
@@ -56,7 +50,7 @@ def get_posts(subreddit, after=None):
 
             #Wrap valid images with backend proxy
             if preview_image and preview_image.startswith("http"):
-                preview_image = f"http://localhost:5000/api/image-proxy?url={preview_image}"
+                preview_image = f"https://redditapp-ynpl.onrender.com/api/image-proxy?url={preview_image}"
             else:
                 preview_image = None
 
@@ -122,10 +116,8 @@ def image_proxy():
 @app.route("/api/subreddits/popular")
 def get_popular_subreddits():
     try:
-        url = "https://www.reddit.com/subreddits/popular.json?limit=15"
-        headers = {"User-Agent": USER_AGENT}
-        res = requests.get(url, headers=headers)
-        data = res.json()
+
+        data = data = reddit_get("/subreddits/popular", params={"limit": 15})
 
         subreddits = []
         for child in data["data"]["children"]:
@@ -137,23 +129,14 @@ def get_popular_subreddits():
             })
 
         return jsonify(subreddits)
-    except requests.exceptions.HTTPError as e:
-        print("Reddit HTTP error:", res.text)  # Trying to get logs
-        return jsonify({"error": str(e), "body": res.text}), 500
     except Exception as e:
-        print("General error:", e)  # Trying to get logs
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/suggestions/<query>", strict_slashes=False)
 def get_suggestions(query):
-    headers = {"User-Agent": USER_AGENT}  # Your Reddit User-Agent
     try:
-        res = requests.get(
-            f"https://www.reddit.com/api/subreddit_autocomplete_v2.json?query={query}",
-            headers=headers
-        )
-        res.raise_for_status()
-        return jsonify(res.json())
+        data = reddit_get(f"/api/subreddit_autocomplete_v2.json", params={"query": query})
+        return jsonify(data)
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
