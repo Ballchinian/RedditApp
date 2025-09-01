@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import API_BASE_URL from "../config/config";
 
 // ---- Fetch initial posts ----
 export const fetchPosts = createAsyncThunk(
   "openSubreddit/fetchPosts",
   async (subreddit, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/posts/${subreddit}`);
+      const response = await axios.get(`${API_BASE_URL}/api/posts/${subreddit}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -19,8 +20,8 @@ export const fetchMorePosts = createAsyncThunk(
   async ({ subreddit, after }, { rejectWithValue }) => {
     try {
       const url = after
-        ? `http://localhost:5000/api/posts/${subreddit}/${after}`
-        : `http://localhost:5000/api/posts/${subreddit}`;
+        ? `${API_BASE_URL}/api/posts/${subreddit}/${after}`
+        : `${API_BASE_URL}/api/posts/${subreddit}`;
       const response = await axios.get(url);
       return response.data; 
     } catch (error) {

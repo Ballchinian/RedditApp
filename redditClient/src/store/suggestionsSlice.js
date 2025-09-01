@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import API_BASE_URL from "../config/config";
 
 const initialState = {
   suggestions: [],
@@ -39,7 +40,7 @@ export const fetchSuggestions = (searchTerm) => async (dispatch) => {
   dispatch(setSuggestionsLoading()); // Set loading state
 
   try {
-    const response = await axios.get(`http://localhost:5000/api/suggestions/${searchTerm}`);
+    const response = await axios.get(`${API_BASE_URL}/api/suggestions/${searchTerm}`);
     const suggestionList = response.data.data.children
       .slice(0, 5)
       .map(child => child.data.display_name);
