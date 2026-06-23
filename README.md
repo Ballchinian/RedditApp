@@ -1,35 +1,121 @@
-Reddit Browser
+# Reddit Browser
 
-This project was made to simulate a Reddit browsing experience. The aim was to provide a clean interface to explore subreddits, view posts, and load images seamlessly.
+A web application that simulates a clean Reddit browsing experience. It lets you search subreddits, browse hot posts, and view images seamlessly through a Flask backend that talks to Reddit's OAuth API and proxies images to avoid CORS issues.
 
-Some of the main features include:
-- Flask backend (API and image proxy)
-- React frontend (subreddit search, posts display, load more)
+## Features
 
-- Redux Toolkit (State management for open subreddit and suggestions)
-- Axios (API requests from frontend)
-- CORS handling (Allow frontend and backend to communicate locally)
-- Image Proxy (Fallback to stable i.redd.it images, full preview, or thumbnail if necessary)
+* Subreddit search with live autocomplete suggestions
+* Hot post browsing with pagination
+* Popular subreddit discovery
+* Image proxying with stable image fallbacks
+* Redux-managed application state
+* Local development with CORS handling
 
-When building this I wanted to bring everything I know about API integration with a nice lite feel to the visuals:
+## Tech Stack
 
-- REST API design and endpoints
-- Python/Flask for backend logic and requests
-- React + Redux for dynamic frontend rendering
-- Handling pagination (after tokens) for Reddit hot posts
-- Suggestions bar powered by Reddit’s autocomplete API
-- Backend API Endpoints
+* **Backend** — Python / Flask (REST API and image proxy)
+* **Frontend** — React + Redux Toolkit
+* **Requests** — Axios and the Fetch API
+* **Reddit Access** — OAuth client-credentials flow with token caching
 
-/api/posts/:subreddit/ [GET]
-Fetch hot posts for a subreddit. Supports pagination with /api/posts/:subreddit/:after.
+## Documentation
 
-/api/image-proxy [GET]
-Proxies Reddit images to prevent CORS issues. Tries to use stable i.redd.it images, full previews, or thumbnail fallbacks.
+* [API Endpoints](./ENDPOINTS.md)
 
-/api/subreddits/popular [GET]
-Returns a list of popular subreddits with name, title, and subscriber count.
+---
 
-/api/suggestions/:query [GET]
-Returns subreddit suggestions matching the search query.
+# How the App Works
 
-This project is focused on API integration, state management, and smooth frontend-backend interaction
+The frontend never talks to Reddit directly. Every request flows through the Flask backend, which authenticates with Reddit, shapes the response, and returns clean JSON to the browser.
+
+## Reddit Authentication
+
+The backend uses Reddit's OAuth **client-credentials** flow.
+
+* An access token is requested with the configured client ID and secret.
+* Tokens are cached in memory and reused until shortly before they expire.
+* All Reddit requests are sent to `oauth.reddit.com` with a custom User-Agent.
+
+## Image Proxying
+
+Reddit image URLs cannot be loaded directly from the browser without CORS and referrer issues, so images are routed through the backend proxy.
+
+The proxy selects an image source in priority order:
+
+| Priority | Source                        |
+| -------- | ----------------------------- |
+| 1        | Stable `i.redd.it` image      |
+| 2        | Full-resolution preview image |
+| 3        | Thumbnail fallback            |
+
+If no usable image is found, the post is returned without a thumbnail.
+
+## Pagination
+
+Hot posts are fetched in pages of ten. Each response includes an `after` token (the Reddit fullname of the last post) which the frontend passes back to load the next page.
+
+---
+
+# State Management
+
+Redux Toolkit manages the shared frontend state.
+
+| Slice           | Responsibility                          |
+| --------------- | --------------------------------------- |
+| `openSubreddit` | The currently selected subreddit        |
+| `suggestions`   | Autocomplete results for the search bar |
+
+---
+
+# Configuration
+
+## Backend
+
+The backend reads the following environment variables:
+
+| Variable        | Description                          |
+| --------------- | ------------------------------------ |
+| `CLIENT_ID`     | Reddit application client ID         |
+| `CLIENT_SECRET` | Reddit application client secret     |
+| `USER_AGENT`    | User-Agent sent with Reddit requests |
+
+## Frontend
+
+The API base URL is selected automatically:
+
+* **Production** — the deployed backend URL
+* **Development** — `http://localhost:5000`
+
+---
+
+# Running Locally
+
+## Backend
+
+```
+cd redditBackend
+pip install -r requirements.txt
+python app.py
+```
+
+The backend runs on port `5000`.
+
+## Frontend
+
+```
+cd redditClient
+npm install
+npm start
+```
+
+The frontend runs on port `3000`.
+
+---
+
+# Typical Flow
+
+1. The user searches for a subreddit.
+2. Autocomplete suggestions are fetched as they type.
+3. A subreddit is selected and its hot posts are loaded.
+4. Images are requested through the backend proxy.
+5. Loading more fetches the next page using the `after` token.
