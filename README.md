@@ -5,10 +5,10 @@ A web app that gives you a clean Reddit browsing experience. Search subreddits, 
 ## Features
 
 - Subreddit search with live autocomplete suggestions
-- Hot-post browsing with pagination
+- Hot post browsing with pagination
 - Popular subreddit discovery
 - Image proxying with stable fallbacks
-- Redux-managed application state
+- Redux managed application state
 
 Endpoint docs live in [ENDPOINTS.md](./ENDPOINTS.md).
 
@@ -18,7 +18,7 @@ The frontend never talks to Reddit directly. Every request goes through the Flas
 
 ### Reddit authentication
 
-The backend uses Reddit's OAuth **client-credentials** flow. It asks for an access token with the configured client ID and secret, caches that token in memory, and reuses it until shortly before it expires. Every Reddit request goes to `oauth.reddit.com` with a custom User-Agent.
+The backend uses Reddit's OAuth **client-credentials** flow. It asks for an access token with the configured client ID and secret, caches that token in memory, and reuses it until shortly before it expires. Every Reddit request goes to `oauth.reddit.com` with a custom User Agent.
 
 ### Image proxying
 
